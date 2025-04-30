@@ -63,13 +63,20 @@ def importar_planilha(request):
                 if pd.notna(row['data']):
                     # Criar/obter Endereço da Assistida
                     endereco_assistida, _ = Endereco.objects.get_or_create(
-                        rua=row['rua_assistida'],
-                        numero=row['numero_assistida'],
-                        bairro=row['bairro_assistida'],
-                        cidade=row['cidade_assistida'],
-                        municipio=row['municipio_assistida']
+                            rua=row['rua_assistida'],
+                            numero=row['numero_assistida'],
+                            bairro=row['bairro_assistida'],
+                            cidade=row['cidade_assistida'],
+                            municipio=row['municipio_assistida']
                     )
-
+                    # Verifica campos obrigatórios
+                    if not nome_assistida or not nome_agressor or not tipo or pd.isna(data_ocorrencia):
+                        print(f"Linha {index+1} ignorada: campos obrigatórios ausentes.")
+                        messages.warning(request, f"Linha {index+1} ignorada: campos obrigatórios ausentes.")
+                        continue  # Pula esta linha e vai para a próxima
+                    
+                    
+                    
                     # Criar/obter Assistida
                     assistida, _ = Assistida.objects.get_or_create(
                         nome=row['nome_assistida'],

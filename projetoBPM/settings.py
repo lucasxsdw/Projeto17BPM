@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'projetoBPM.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dados_ocorrencias',
+        'NAME': 'ocorrencias',
         'USER': 'lucas',
         'PASSWORD': 'lucasx123',
         'HOST': 'localhost',

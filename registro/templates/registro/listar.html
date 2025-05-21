@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de Ocorrências</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .table-responsive { overflow-x: auto; width: 100%; }
+    .wide-table { min-width: 1400px; }
+    .wide-table th,
+    .wide-table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style>
+</head>
+<body class="container mt-5">
+  <h2 class="mb-4">Lista de Ocorrências</h2>
+
+  <!-- Formulário de upload -->
+  <form method="post" enctype="multipart/form-data" class="mb-4">
+    {% csrf_token %}
+    <div class="input-group">
+      <input type="file" name="arquivo" class="form-control" required>
+      <button class="btn btn-success" type="submit">Importar nova planilha</button>
+    </div>
+  </form>
+
+  <!-- Botão ativos/apagados -->
+  <div class="mb-4">
+    {% if mostrar_apagados %}
+      <a href="{% url 'listar_ocorrencias' %}" class="btn btn-secondary">Ver Ativos</a>
+    {% else %}
+      <a href="?apagados=1" class="btn btn-warning">Ver Apagados</a>
+    {% endif %}
+  </div>
+
+  <!-- Mensagens -->
+  {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Tabela compacta com colunas essenciais -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped wide-table">
+      <thead class="table-dark">
+        <tr>
+          <th>Vítima</th>
+          <th>Endereço Vítima</th>
+          <th>Agressor</th>
+          <th>Endereço Agressor</th>
+          <th>Local Ocorrência</th>
+          <th>Tipo</th>
+          <th>Relação Vítima‑Autor</th>
+          <th>Data Ocorrência</th>
+          <th>Data Importação</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in ocorrencias %}
+        <tr>
+          <td>{{ o.nome_vitima }}</td>
+          <td>
+            {{ o.rua_vitima }}, {{ o.numero_vitima }}<br>
+            {{ o.bairro_vitima }} – {{ o.cidade_vitima }}/{{ o.municipio_vitima }}
+          </td>
+
+          <td>{{ o.nome_agressor }}</td>
+          <td>
+            {{ o.rua_agressor }}, {{ o.numero_agressor }}<br>
+            {{ o.bairro_agressor }} – {{ o.cidade_agressor }}/{{ o.municipio_agressor }}
+          </td>
+
+          <td>{{ o.local_ocorrencia }}</td>
+          <td>{{ o.tipo }}</td>
+          <td>{{ o.relacao_vitima_autor }}</td>
+          <td>{{ o.data_ocorrencia|date:"d/m/Y" }}</td>
+          <td>{{ o.data_importacao|date:"d/m/Y H:i" }}</td>
+          <td>
+            {% if mostrar_apagados %}
+              <a href="{% url 'restaurar_ocorrencia' o.id %}" class="btn btn-sm btn-success">Restaurar</a>
+            {% else %}
+              <a href="{% url 'deletar_ocorrencia' o.id %}" class="btn btn-sm btn-danger">Excluir</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="10" class="text-center">Nenhuma ocorrência encontrada.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

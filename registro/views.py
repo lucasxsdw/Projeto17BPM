@@ -3,6 +3,17 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .models import OcorrenciaImportada
 
+
+
+
+
+
+
+def home(request):
+    return render(request, 'index.html')
+
+
+
 def importar_planilha(request):
     # sua view de import separada permanece inalterada,
     # mas não será mais usada pelo template de listagem (já sem rota)

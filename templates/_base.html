@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 
 <head>
 
@@ -27,18 +27,20 @@
 
     <div id="wrapper">
 
-        {% include 'meuapp/_sidebar.html' %}
-        <div id="content-wrapper" class="d-flex flex-column">
+    {% include '__sidebar.html' %}
+    <div id="content-wrapper" class="d-flex flex-column">
 
-            <div id="content">
+        <div id="content">
 
-                {% include 'meuapp/_navbar.html' %}
-                {% block content %}
-                {% endblock %}
-                </div>
-            {% include 'meuapp/_footer.html' %}
-            </div>
+            {% include '__navbar.html' %}
+            {% block content %}
+            {% endblock %}
+
         </div>
+
+        {% include '__footer.html' %}
+    </div>
+</div>
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
@@ -73,7 +75,7 @@
 
     <script src="{% static 'js/demo/chart-area-demo.js' %}"></script>
     <script src="{% static 'js/demo/chart-pie-demo.js' %}"></script>
-
+  <link href="{% static 'css/style.css' %}" rel="stylesheet">
 </body>
 
 </html>

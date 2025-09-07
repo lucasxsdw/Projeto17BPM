@@ -1,0 +1,81 @@
+{% extends '_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="mb-4">
+        <a href="javascript:history.back()" class="text-decoration-none">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h1 class="fw-bold font-name-import">Importar Dados</h1>
+        <p class="text-muted">Faça upload de arquivos Excel ou CSV com dados de ocorrências</p>
+    </div>
+
+    <!-- mensagens Django -->
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+            <div class="alert 
+                {% if message.tags == 'success' %}alert-success
+                {% elif message.tags == 'error' %}alert-danger
+                {% elif message.tags == 'warning' %}alert-warning
+                {% else %}alert-info{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form action="{% url 'listar_ocorrencias' %}" method="post" enctype="multipart/form-data"
+          class="bg-white shadow-sm p-4 rounded-3"
+          style="max-width: 900px;">
+
+        {% csrf_token %}
+
+        <h5 class="fw-bold mb-3 font-name-import">
+            <img src="{% static 'img/logo_carregar.png' %}" class="nav-icon-import" alt="">
+            <i class="bi bi-upload "></i> Selecionar Arquivo
+        </h5>
+
+        <!-- Área de drag-and-drop -->
+        <div class="border border-2 border-dashed rounded-3 d-flex flex-column align-items-center justify-content-center p-5 text-center container-import"
+             style="border-style: dashed; min-height: 200px; cursor: pointer;"
+             onclick="document.getElementById('fileInput').click()">
+
+            <i class="bi bi-file-earmark-text text-secondary" style="font-size: 3rem;"></i>
+            <p class="mt-3 mb-1">Arraste um arquivo ou clique para selecionar</p>
+            <small class="text-muted">Formatos aceitos: Excel (.xlsx, .xls) ou CSV (.csv)</small>
+            <input type="file" name="arquivo" id="fileInput" accept=".xlsx,.xls,.csv" required hidden>
+
+            <button type="submit" class="btn btn-primary mt-4 px-5">Carregar Arquivo</button>
+        </div>
+
+        
+
+        <!-- Preview do arquivo -->
+        <div id="filePreview" class="mt-3 d-none">
+            <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded">
+                <div>
+                    <i class="bi bi-file-earmark-excel text-primary"></i>
+                    <span id="fileName" class="ms-2"></span>
+                    <small id="fileSize" class="text-muted ms-2"></small>
+                </div>
+                <button type="submit" class="btn btn-success">Processar</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- JS para preview do arquivo -->
+<script>
+document.getElementById("fileInput").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        document.getElementById("filePreview").classList.remove("d-none");
+        document.getElementById("fileName").textContent = file.name;
+        document.getElementById("fileSize").textContent = (file.size / 1024).toFixed(2) + " KB";
+    }
+});
+</script>
+
+{% endblock %}

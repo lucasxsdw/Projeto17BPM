@@ -10,6 +10,7 @@ urlpatterns = [
     path('ocorrencias/', views.listar_ocorrencias, name='listar_ocorrencias'),
     path('ocorrencias/deletar/<int:id>/', views.deletar_ocorrencia, name='deletar_ocorrencia'),
     path('ocorrencias/restaurar/<int:id>/', views.restaurar_ocorrencia, name='restaurar_ocorrencia'),
+    path('ocorrencias/importar/', views.form_ocorrencia, name='ocorrencia_form'),
    
 
 ]

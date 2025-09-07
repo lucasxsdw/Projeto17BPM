@@ -61,6 +61,49 @@
 .sidebar .sidebar-brand {
     padding: 1.2rem 1rem; /* Ajuste o padding conforme a necessidade */
     justify-content: flex-start; /* Alinha o conteúdo à esquerda */
-    height: auto; /* Remove altura fixa se houver */
+    height: auto; 
 }
 
+
+
+/* topbar */
+
+.Dashboard-title{
+    color: #000000 !important; 
+    font-weight: bolder;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 25px;
+}
+
+.Dashboard-subtitle{
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+      color: #7e7e7e !important; 
+
+}
+
+/*tela de importacao*/
+.nav-icon-import{
+    height: 30px;
+    width: 30px;
+}
+
+.font-name-import{
+    
+    color: #000000 !important;
+
+
+}
+
+
+.container-import{
+    border: 2px dashed #bdbdbd !important;
+    border-radius: 5px;
+    
+    
+}
+
+.container-import:hover{
+    border: 2px dashed #007dea !important;
+
+}

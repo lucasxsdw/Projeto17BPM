@@ -2,6 +2,117 @@
 {% load static %}
 {% block content %}
 
-<h1>list</h1>
+<div class="container mt-4">
+     <div class="mb-4 d-flex align-items-center gap-2">
+    <!-- Link de voltar -->
+    <a href="javascript:history.back()" class="text-decoration-none d-flex align-items-center">
+        <img src="{% static 'img/seta-voltar.png' %}" class="nav-icon-import-back me-2 "  alt="">
+        <span class="fw-bold font-name-import ml-2 ">Busca Avançada</span>
+    </a>
+</div>
 
+<p class="text-muted font-name-subtext" >Pesquise e filtre ocorrências com múltiplos critérios</p>
+
+<div class="container-filter bg-white shadow rounded">
+    <!-- Cabeçalho com ícone + título -->
+    <div class="d-flex align-items-center p-3 border-bottom">
+        <img src="{% static 'img/filtro.png' %}" 
+             class="me-2" 
+             alt="Filtro" 
+             style="width: 22px; height: 22px;">
+        <h5 class="fw-bold mb-0">Filtros de Busca</h5>
+    </div>
+
+    <!-- Formulário -->
+    <form action="?" method="GET" class="p-3">
+        <div class="mb-3">
+            <label for="vitima" class="form-label">Nome da Vítima</label>
+            <input type="text" name="vitima" id="vitima" 
+                   value="{{ request.GET.vitima }}" 
+                   class="form-control" placeholder="Nome da vítima">
+        </div>
+
+        <div class="mb-3">
+            <label for="agressor" class="form-label">Nome do Agressor</label>
+            <input type="text" name="agressor" id="agressor" 
+                   value="{{ request.GET.agressor }}" 
+                   class="form-control" placeholder="Nome do agressor">
+        </div>
+
+        <div class="mb-3">
+            <label for="violencia" class="form-label">Tipo de Violência</label>
+            <input type="text" name="violencia" id="violencia" 
+                   value="{{ request.GET.violencia }}" 
+                   class="form-control" placeholder="Ex: Violência Doméstica">
+        </div>
+
+        <div class="mb-3">
+            <label for="bairro" class="form-label">Bairro</label>
+            <input type="text" name="bairro" id="bairro" 
+                   value="{{ request.GET.bairro }}" 
+                   class="form-control" placeholder="Ex: Centro">
+        </div>
+
+        <div class="row mb-3">
+            <div class="col">
+                <label for="inicio" class="form-label">Data Início</label>
+                <input type="date" name="inicio" id="inicio" 
+                       value="{{ request.GET.inicio }}" 
+                       class="form-control">
+            </div>
+            <div class="col">
+                <label for="fim" class="form-label">Data Fim</label>
+                <input type="date" name="fim" id="fim" 
+                       value="{{ request.GET.fim }}" 
+                       class="form-control">
+            </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search me-1"></i> Buscar
+            </button>
+            <a href="{% url 'listar_ocorrencias' %}" class="btn btn-light">Limpar</a>
+        </div>
+    </form>
+</div>
+
+
+  <!-- {% if ocorrencias %}
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Assistida</th>
+                    <th>Agressor</th>
+                    <th>Local</th>
+                    <th>Data</th>
+                    <th>Tipo de Violência</th>
+                    <th>Descrição</th>
+                    <th>Data Importação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ocorrencia in ocorrencias %}
+                    <tr>
+                        <td>{{ ocorrencia.id }}</td>
+                        <td>{{ ocorrencia.assistida.nome_completo }}</td>
+                        <td>{{ ocorrencia.agressor.nome_completo }}</td>
+                        <td>{{ ocorrencia.local_ocorrencia }}</td>
+                        <td>{{ ocorrencia.data_ocorrencia|date:"d/m/Y" }}</td>
+                        <td>{{ ocorrencia.tipo_violencia }}</td>
+                        <td>{{ ocorrencia.descricao_fato|default:"-" }}</td>
+                        <td>{{ ocorrencia.data_importacao|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="alert alert-info">Nenhuma ocorrência encontrada.</p>
+    {% endif %}
+    --> 
+
+    <a href="{% url 'ocorrencia_form' %}" class="btn btn-primary mt-3">Importar Nova Planilha</a>
+</div>
 {% endblock %}

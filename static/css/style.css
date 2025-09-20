@@ -142,7 +142,7 @@
 
 .container-filter{
     height: auto;
-    width: 300px;
+    width: 230px;
     
 }
 
@@ -154,3 +154,29 @@
 
 
 }
+
+/*filtro busca*/
+.form-label{
+    color: #000000 !important;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.font-filtre{
+    font-weight: bold;
+    color: #000000 !important;
+    
+
+}
+
+.compact-text {
+        font-size: 0.8rem; /* 0.8rem é cerca de 80% do tamanho da fonte padrão, ideal para compactar */
+    }
+    /* Estilo para ajustar os inputs, caso necessário */
+.form-control-sm-custom {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+
+

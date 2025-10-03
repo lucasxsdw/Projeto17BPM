@@ -1,4 +1,5 @@
 # seu_projeto/sua_app/models.py
+from datetime import date
 from django.db import models
 
 class Assistida(models.Model):
@@ -41,6 +42,7 @@ class Agressor(models.Model):
 
     class Meta:
         db_table = 'agressores'
+
 
 
 class Ocorrencia(models.Model):

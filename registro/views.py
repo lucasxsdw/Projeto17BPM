@@ -4,7 +4,7 @@ from django.contrib import messages
 from .models import Assistida, Agressor,Ocorrencia,PerfilAcesso, Usuario, Alerta
 from django.views import View
 from django.views.generic import ListView
-
+from django.db.models import Q # Importe Q para combinar filtros
 from .forms import ImportarDadosForm
 
 
@@ -91,12 +91,49 @@ class form_ocorrencia(View):
         )
 
 
+def listar_ocorrencias(request):
+      # Comece com todas as ocorrências
+    ocorrencias = Ocorrencia.objects.all()
 
+    # Recebe os valores do formulário de busca
+    # Note que os nomes das variáveis (ex: 'vitima') devem ser os mesmos que os 'name' dos inputs no HTML
+    nome_vitima = request.GET.get('vitima')
+    nome_agressor = request.GET.get('agressor')
+    tipo_violencia = request.GET.get('violencia')
+    bairro_ocorrencia = request.GET.get('bairro')
+    data_inicio = request.GET.get('inicio')
+    data_fim = request.GET.get('fim')
 
+    # Filtra por Nome da Vítima
+    # Acessamos o campo 'nome_completo' do modelo 'Assistida' através da chave estrangeira 'assistida'
+    if nome_vitima:
+        ocorrencias = ocorrencias.filter(assistida__nome_completo__icontains=nome_vitima)
 
+    # Filtra por Nome do Agressor
+    # Acessamos o campo 'nome_completo' do modelo 'Agressor' através da chave estrangeira 'agressor'
+    if nome_agressor:
+        ocorrencias = ocorrencias.filter(agressor__nome_completo__icontains=nome_agressor)
 
+    # Filtra por Tipo de Violência
+    if tipo_violencia:
+        ocorrencias = ocorrencias.filter(tipo_violencia__icontains=tipo_violencia)
 
-class listar_ocorrencias(ListView):
-    model = Ocorrencia
-    template_name = 'ocorrencias/ocorrencias_list.html'
-    context_object_name = 'ocorrencias'
+    # Filtra por Bairro da Ocorrência
+    if bairro_ocorrencia:
+        ocorrencias = ocorrencias.filter(local_ocorrencia__icontains=bairro_ocorrencia)
+
+    # Filtra por Data de Início
+    if data_inicio:
+        ocorrencias = ocorrencias.filter(data_ocorrencia__gte=data_inicio)
+
+    # Filtra por Data de Fim
+    if data_fim:
+        ocorrencias = ocorrencias.filter(data_ocorrencia__lte=data_fim)
+        
+    # Prepara o contexto para enviar para o template.
+    # A lista de ocorrências já está filtrada nesse ponto.
+    context = {
+        'ocorrencias': ocorrencias
+    }
+
+    return render(request, 'ocorrencias/ocorrencias_list.html', context)

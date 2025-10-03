@@ -20,6 +20,8 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('registro.urls')),  # conecta as URLs do app registro
+    path('registro/', include('registro.urls')),
+    path('dashboard/', include('dashboard.urls')),
+
     
 ]

@@ -12,6 +12,7 @@
 </style>
 
 <div class="container mt-4">
+    <!-- Cabeçalho -->
     <div class="mb-4 d-flex align-items-center gap-2">
         <a href="javascript:history.back()" class="text-decoration-none d-flex align-items-center">
             <img src="{% static 'img/seta-voltar.png' %}" class="nav-icon-import-back me-2" alt="">
@@ -22,11 +23,11 @@
     <p class="text-muted font-name-subtext">Pesquise e filtre ocorrências com múltiplos critérios</p>
 
     <div class="row">
+        <!-- FILTROS 
         <div class="col-md-3">
             <div class="container-filter bg-white shadow rounded mb-3 compact-text">
                 <div class="d-flex align-items-center p-3 border-bottom">
-                    <img src="{% static 'img/filtro.png' %}" class="me-2" alt="Filtro"
-                        style="width: 22px; height: 22px;">
+                    <img src="{% static 'img/filtro.png' %}" class="me-2" alt="Filtro" style="width: 22px; height: 22px;">
                     <h5 class="font-filtre mb-0 ml-2">Filtros de Busca</h5>
                 </div>
 
@@ -37,32 +38,41 @@
                             value="{{ request.GET.vitima }}" class="form-control form-control-sm-custom"
                             placeholder="Nome da vítima">
                     </div>
+
                     <div class="mb-3">
                         <label for="agressor" class="form-label">Nome do Agressor</label>
                         <input type="text" name="agressor" id="agressor"
                             value="{{ request.GET.agressor }}" class="form-control form-control-sm-custom"
                             placeholder="Nome do agressor">
                     </div>
+
                     <div class="mb-3">
                         <label for="violencia" class="form-label">Tipo de Violência</label>
                         <input type="text" name="violencia" id="violencia"
                             value="{{ request.GET.violencia }}" class="form-control form-control-sm-custom"
                             placeholder="Ex: Violência Doméstica">
                     </div>
+
                     <div class="mb-3">
-                        <label for="bairro" class="form-label">Local</label>
-                        <input type="text" name="bairro" id="bairro"
-                            value="{{ request.GET.bairro }}" class="form-control form-control-sm-custom"
-                            placeholder="Ex: Centro">
+                        <label for="municipio" class="form-label">Município</label>
+                        <input type="text" name="municipio" id="municipio"
+                            value="{{ request.GET.municipio }}" class="form-control form-control-sm-custom"
+                            placeholder="Ex: Guanambi">
                     </div>
+
                     <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label for="inicio" class="form-label">Data </label>
+                        <div class="col-md-6">
+                            <label for="inicio" class="form-label">Data Inicial</label>
                             <input type="date" name="inicio" id="inicio"
                                 value="{{ request.GET.inicio }}" class="form-control form-control-sm-custom">
                         </div>
-                        
+                        <div class="col-md-6">
+                            <label for="fim" class="form-label">Data Final</label>
+                            <input type="date" name="fim" id="fim"
+                                value="{{ request.GET.fim }}" class="form-control form-control-sm-custom">
+                        </div>
                     </div>
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary w-75">
                             <i class="bi bi-search me-1"></i> Buscar
@@ -71,41 +81,54 @@
                     </div>
                 </form>
             </div>
-        </div>
+        </div>-->
 
-        <div class="col-md-9">
+        <!-- RESULTADOS -->
+        <div class="">
             <div class="bg-white shadow rounded p-3">
                 {% if ocorrencias %}
                     <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                        <table class="table table-bordered table-striped table-sm compact-text">
+                        <table class="table table-bordered table-striped table-sm compact-text align-middle">
                             <thead class="table-light sticky-top">
                                 <tr>
-                                    <th>Assistida</th>
-                                    <th>Agressor</th>
-                                    <th>Local</th>
-                                    <th>Data</th>
-                                    <th>Tipo</th>
-                                    <th>Descrição</th>
-                                    <th>Data Importação</th>
+                                    <th>VÍTIMA(S)</th>
+                                    <th>AGRESSOR(ES)</th>
+                                    <th>MUNICÍPIO</th>
+                                    <th>DATA REGISTRO</th>
+                                    <th>NATUREZA</th>
+                                    <th>DATA IMPORTAÇÃO</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for ocorrencia in ocorrencias %}
                                     <tr class="dados-tabela">
-                                        <td >{{ ocorrencia.assistida.nome_completo }}</td>
-                                        <td>{{ ocorrencia.agressor.nome_completo }}</td>
-                                        <td>{{ ocorrencia.local_ocorrencia }}</td>
-                                        <td>{{ ocorrencia.data_ocorrencia|date:"d/m/Y" }}</td>
-                                        <td>{{ ocorrencia.tipo_violencia }}</td>
-                                        <td>{{ ocorrencia.descricao_fato|default:"-" }}</td>
-                                        <td>{{ ocorrencia.data_importacao|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            {% for v in ocorrencia.vitimas.all %}
+                                                {{ v.nome }}{% if not forloop.last %}, {% endif %}
+                                            {% empty %}
+                                                -
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            {% for a in ocorrencia.agressores.all %}
+                                                {{ a.nome }}{% if not forloop.last %}, {% endif %}
+                                            {% empty %}
+                                                -
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ ocorrencia.municipio }}</td>
+                                        <td>{{ ocorrencia.data_registro|date:"d/m/Y" }}</td>
+                                        <td>{{ ocorrencia.natureza }}</td>
+                                        <td>{{ ocorrencia.created_at|date:"d/m/Y H:i" }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <p class="alert alert-info compact-text">Nenhuma ocorrência encontrada.</p>
+                    <p class="alert alert-info compact-text mb-0">
+                        Nenhuma ocorrência encontrada com os filtros aplicados.
+                    </p>
                 {% endif %}
             </div>
         </div>

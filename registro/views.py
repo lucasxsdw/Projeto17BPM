@@ -1,139 +1,199 @@
 import pandas as pd
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Assistida, Agressor,Ocorrencia,PerfilAcesso, Usuario, Alerta
 from django.views import View
-from django.views.generic import ListView
-from django.db.models import Q # Importe Q para combinar filtros
+from django.utils import timezone
+from django.db.models import Q
+from .models import Ocorrencia, Vitima, Agressor
 from .forms import ImportarDadosForm
+import re
+from datetime import datetime
 
 
-
-
+# =========================
+# PÁGINA INICIAL
+# =========================
 def home(request):
+    """Renderiza a página inicial"""
     return render(request, 'index.html')
 
 
+# =========================
+# FORMULÁRIO DE UPLOAD DE PLANILHA
+# =========================
+class FormOcorrencia(View):
+    """
+    Classe baseada em View para upload de planilhas Excel contendo ocorrências.
+    """
 
-class form_ocorrencia(View):
     template_name = 'ocorrencias/ocorrencia_form.html'
 
     def get(self, request):
-        """
-        Método GET: renderiza o formulário de upload da planilha.
-        """
+        """Exibe o formulário de upload"""
         form = ImportarDadosForm()
         return render(request, self.template_name, {'form': form})
 
     def post(self, request):
-        """
-        Método POST: processa o arquivo enviado pelo formulário.
-        """
+        """Processa o arquivo enviado via formulário"""
         form = ImportarDadosForm(request.POST, request.FILES)
 
-        if form.is_valid():
-            arquivo = request.FILES['arquivo']
-            df = pd.read_excel(arquivo)  # Lê o Excel como DataFrame
+        if not form.is_valid():
+            return render(request, self.template_name, {'form': form})
 
-            for _, row in df.iterrows():
-                # Para cada linha da planilha, cria ou atualiza as entidades
-                self.criar_ocorrencia(row)
+        arquivo = request.FILES['arquivo']
 
-            return redirect('listar_ocorrencias')  # Redireciona após o processamento
+        try:
+            df = pd.read_excel(arquivo)
+        except Exception as e:
+            messages.error(request, f"Erro ao ler o arquivo Excel: {str(e)}")
+            return render(request, self.template_name, {'form': form})
 
-        # Se o formulário não for válido, renderiza o template com erros
-        return render(request, self.template_name, {'form': form})
+        # Normaliza nomes das colunas
+        df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+
+        # Itera sobre as linhas da planilha
+        for _, row in df.iterrows():
+            self.criar_ocorrencia(row)
+
+        messages.success(request, "Planilha processada com sucesso!")
+        return redirect('listar_ocorrencias')
+
+    # =========================
+    # FUNÇÕES AUXILIARES
+    # =========================
+    def separar_envolvidos(self, envolvidos_raw):
+        """
+        Divide o campo de envolvidos em listas de vítimas e agressores.
+        Exemplo de entrada:
+        "Maria (vítima); João (autor); Pedro (testemunha)"
+        """
+        vitimas, agressores = [], []
+
+        if not isinstance(envolvidos_raw, str):
+            return vitimas, agressores
+
+        partes = re.split(r'[,\n;]+', envolvidos_raw)
+
+        for parte in partes:
+            parte = parte.strip()
+            match = re.match(r'(.+?)\s*\((.*?)\)', parte)
+            if not match:
+                continue
+
+            nome = match.group(1).strip()
+            papel = match.group(2).strip().lower()
+
+            if 'vítima' in papel or 'vitima' in papel:
+                vitimas.append(nome)
+            elif 'autor' in papel or 'agressor' in papel:
+                agressores.append(nome)
+
+        return vitimas, agressores
 
     def criar_ocorrencia(self, row):
         """
-        Cria ou atualiza Assistida, Agressor e Ocorrencia usando os dados da linha.
+        Cria ou atualiza uma ocorrência, vinculando vítimas e agressores.
         """
 
-        # 1️⃣ Criar ou obter Assistida
-        assistida, _ = Assistida.objects.get_or_create(
-            nome_completo=row['nome_assistida'],
+        # Filtra apenas ocorrências de violência doméstica
+        natureza = str(row.get('natureza_da_ocorrencia', '')).lower()
+        if 'violencia domestica' not in natureza:
+            return
+
+        # Converte a data de registro
+        data_raw = row.get('data_registro')
+        data_registro = timezone.now().date()
+
+        if pd.notna(data_raw):
+            try:
+                if isinstance(data_raw, str):
+                    data_registro = datetime.strptime(data_raw.split(' ')[0], '%d/%m/%Y').date()
+                else:
+                    data_registro = data_raw.date()
+            except Exception:
+                pass
+
+        # Cria ou atualiza ocorrência
+        ocorrencia, created = Ocorrencia.objects.get_or_create(
+            numero_procedimento=row.get('nº_do_procedimento') or row.get('numero_do_procedimento'),
             defaults={
-                'data_nascimento': row.get('data_nascimento_assistida'),
-                'estado_civil': row.get('estado_civil'),
-                'escolaridade': row.get('escolaridade'),
-                'profissao': row.get('profissao'),
-                'rua': row.get('rua'),
-                'numero': row.get('numero'),
-                'bairro': row.get('bairro'),
-                'cidade': row.get('cidade'),
+                'data_registro': data_registro,
                 'municipio': row.get('municipio'),
+                'natureza': row.get('natureza_da_ocorrencia'),
+                'unidade_registro': row.get('unidade_de_registro'),
+                'unidade_apuracao': row.get('unidade_de_apuracao'),
+                'envolvidos_raw': row.get('envolvidos'),
+                'processed': False,
             }
         )
 
-        # 2️⃣ Criar ou obter Agressor
-        agressor, _ = Agressor.objects.get_or_create(
-            nome_completo=row['nome_agressor'],
-            defaults={
-                'data_nascimento': row.get('data_nascimento_agressor'),
-                'relacao_com_assistida': row.get('relacao_com_assistida'),
-                'rua': row.get('rua_agressor'),
-                'numero': row.get('numero_agressor'),
-                'bairro': row.get('bairro_agressor'),
-                'cidade': row.get('cidade_agressor'),
-                'municipio': row.get('municipio_agressor'),
-            }
-        )
+        # Extrai vítimas e agressores
+        vitimas, agressores = self.separar_envolvidos(row.get('envolvidos'))
 
-        # 3️⃣ Criar Ocorrencia
-        Ocorrencia.objects.create(
-            assistida=assistida,
-            agressor=agressor,
-            local_ocorrencia=row.get('local_ocorrencia'),
-            data_ocorrencia=row.get('data_ocorrencia'),
-            tipo_violencia=row.get('tipo_violencia'),
-            descricao_fato=row.get('descricao_fato'),
-            
-        )
+        # Cadastra vítimas e agressores sem duplicar
+        for nome in vitimas:
+            if nome:
+                Vitima.objects.get_or_create(ocorrencia=ocorrencia, nome=nome)
+
+        for nome in agressores:
+            if nome:
+                Agressor.objects.get_or_create(ocorrencia=ocorrencia, nome=nome)
 
 
+# ==========================
+# LISTAGEM DE OCORRÊNCIAS
+# ==========================
 def listar_ocorrencias(request):
-      # Comece com todas as ocorrências
+    """
+    Exibe todas as ocorrências cadastradas com filtros opcionais:
+    - nome da vítima
+    - nome do agressor
+    - tipo de violência (natureza)
+    - município (ou unidade de registro)
+    - data inicial e final
+    """
+
     ocorrencias = Ocorrencia.objects.all()
 
-    # Recebe os valores do formulário de busca
-    # Note que os nomes das variáveis (ex: 'vitima') devem ser os mesmos que os 'name' dos inputs no HTML
+    # Filtros via GET
     nome_vitima = request.GET.get('vitima')
     nome_agressor = request.GET.get('agressor')
     tipo_violencia = request.GET.get('violencia')
-    bairro_ocorrencia = request.GET.get('bairro')
+    municipio = request.GET.get('municipio')
     data_inicio = request.GET.get('inicio')
     data_fim = request.GET.get('fim')
 
-    # Filtra por Nome da Vítima
-    # Acessamos o campo 'nome_completo' do modelo 'Assistida' através da chave estrangeira 'assistida'
+    # --- FILTROS DINÂMICOS ---
     if nome_vitima:
-        ocorrencias = ocorrencias.filter(assistida__nome_completo__icontains=nome_vitima)
+        ocorrencias = ocorrencias.filter(vitimas__nome__icontains=nome_vitima)
 
-    # Filtra por Nome do Agressor
-    # Acessamos o campo 'nome_completo' do modelo 'Agressor' através da chave estrangeira 'agressor'
     if nome_agressor:
-        ocorrencias = ocorrencias.filter(agressor__nome_completo__icontains=nome_agressor)
+        ocorrencias = ocorrencias.filter(agressores__nome__icontains=nome_agressor)
 
-    # Filtra por Tipo de Violência
     if tipo_violencia:
-        ocorrencias = ocorrencias.filter(tipo_violencia__icontains=tipo_violencia)
+        ocorrencias = ocorrencias.filter(natureza__icontains=tipo_violencia)
 
-    # Filtra por Bairro da Ocorrência
-    if bairro_ocorrencia:
-        ocorrencias = ocorrencias.filter(local_ocorrencia__icontains=bairro_ocorrencia)
+    if municipio:
+        ocorrencias = ocorrencias.filter(municipio__icontains=municipio)
 
-    # Filtra por Data de Início
     if data_inicio:
-        ocorrencias = ocorrencias.filter(data_ocorrencia__gte=data_inicio)
+        ocorrencias = ocorrencias.filter(data_registro__gte=data_inicio)
 
-    # Filtra por Data de Fim
     if data_fim:
-        ocorrencias = ocorrencias.filter(data_ocorrencia__lte=data_fim)
-        
-    # Prepara o contexto para enviar para o template.
-    # A lista de ocorrências já está filtrada nesse ponto.
+        ocorrencias = ocorrencias.filter(data_registro__lte=data_fim)
+
+    ocorrencias = ocorrencias.distinct()
+
     context = {
-        'ocorrencias': ocorrencias
+        'ocorrencias': ocorrencias,
+        'filtros': {
+            'vitima': nome_vitima,
+            'agressor': nome_agressor,
+            'violencia': tipo_violencia,
+            'municipio': municipio,
+            'inicio': data_inicio,
+            'fim': data_fim,
+        }
     }
 
     return render(request, 'ocorrencias/ocorrencias_list.html', context)

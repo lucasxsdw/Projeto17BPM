@@ -1,4 +1,6 @@
 import pandas as pd
+import re
+from datetime import datetime
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views import View
@@ -6,8 +8,6 @@ from django.utils import timezone
 from django.db.models import Q
 from .models import Ocorrencia, Vitima, Agressor
 from .forms import ImportarDadosForm
-import re
-from datetime import datetime
 
 
 # =========================
@@ -58,34 +58,48 @@ class FormOcorrencia(View):
         messages.success(request, "Planilha processada com sucesso!")
         return redirect('listar_ocorrencias')
 
-    # =========================
+       # =========================
     # FUNÇÕES AUXILIARES
     # =========================
     def separar_envolvidos(self, envolvidos_raw):
         """
-        Divide o campo de envolvidos em listas de vítimas e agressores.
-        Exemplo de entrada:
-        "Maria (vítima); João (autor); Pedro (testemunha)"
+        Extrai vítimas e agressores do campo 'envolvidos', mesmo quando há múltiplos papéis.
+        Exemplo:
+        "JOÃO (AUTOR), MARIA (COMUNICANTE, VÍTIMA)" -> separa corretamente.
         """
         vitimas, agressores = [], []
 
         if not isinstance(envolvidos_raw, str):
             return vitimas, agressores
 
-        partes = re.split(r'[,\n;]+', envolvidos_raw)
+        # Captura pares de Nome + (Papéis)
+        matches = re.findall(r'([^,;]+?)\s*\(([^)]+)\)', envolvidos_raw, re.IGNORECASE)
 
-        for parte in partes:
-            parte = parte.strip()
-            match = re.match(r'(.+?)\s*\((.*?)\)', parte)
-            if not match:
-                continue
+        for nome, papeis in matches:
+            nome = nome.strip().title()
+            papeis = papeis.lower()
 
-            nome = match.group(1).strip()
-            papel = match.group(2).strip().lower()
+            # Normaliza acentuação
+            papeis = (
+                papeis.replace("í", "i")
+                      .replace("á", "a")
+                      .replace("ã", "a")
+                      .replace("é", "e")
+                      .replace("ê", "e")
+                      .replace("ó", "o")
+            )
 
-            if 'vítima' in papel or 'vitima' in papel:
+            # Divide os papéis internos (ex: "comunicante, vitima")
+            papeis_lista = [p.strip() for p in re.split(r'[,\s;/]+', papeis) if p.strip()]
+
+            # Marca se contém vitima ou autor
+            tem_vitima = any('vitima' in p for p in papeis_lista)
+            tem_autor = any('autor' in p for p in papeis_lista)
+
+            # Só adiciona se realmente for vítima ou autor
+            if tem_vitima:
                 vitimas.append(nome)
-            elif 'autor' in papel or 'agressor' in papel:
+            if tem_autor:
                 agressores.append(nome)
 
         return vitimas, agressores
@@ -114,7 +128,7 @@ class FormOcorrencia(View):
                 pass
 
         # Cria ou atualiza ocorrência
-        ocorrencia, created = Ocorrencia.objects.get_or_create(
+        ocorrencia, _ = Ocorrencia.objects.get_or_create(
             numero_procedimento=row.get('nº_do_procedimento') or row.get('numero_do_procedimento'),
             defaults={
                 'data_registro': data_registro,
@@ -130,6 +144,11 @@ class FormOcorrencia(View):
         # Extrai vítimas e agressores
         vitimas, agressores = self.separar_envolvidos(row.get('envolvidos'))
 
+        # Se não encontrou nenhum, apenas registra log
+        if not vitimas and not agressores:
+            print(f"[AVISO] Nenhum envolvido encontrado: {row.get('numero_do_procedimento')}")
+            return
+
         # Cadastra vítimas e agressores sem duplicar
         for nome in vitimas:
             if nome:
@@ -139,18 +158,12 @@ class FormOcorrencia(View):
             if nome:
                 Agressor.objects.get_or_create(ocorrencia=ocorrencia, nome=nome)
 
-
 # ==========================
 # LISTAGEM DE OCORRÊNCIAS
 # ==========================
 def listar_ocorrencias(request):
     """
-    Exibe todas as ocorrências cadastradas com filtros opcionais:
-    - nome da vítima
-    - nome do agressor
-    - tipo de violência (natureza)
-    - município (ou unidade de registro)
-    - data inicial e final
+    Exibe todas as ocorrências cadastradas com filtros opcionais.
     """
 
     ocorrencias = Ocorrencia.objects.all()
@@ -163,7 +176,6 @@ def listar_ocorrencias(request):
     data_inicio = request.GET.get('inicio')
     data_fim = request.GET.get('fim')
 
-    # --- FILTROS DINÂMICOS ---
     if nome_vitima:
         ocorrencias = ocorrencias.filter(vitimas__nome__icontains=nome_vitima)
 

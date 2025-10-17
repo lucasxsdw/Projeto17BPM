@@ -32,7 +32,7 @@ class Ocorrencia(models.Model):
     class Meta:
         verbose_name = "Ocorrência"
         verbose_name_plural = "Ocorrências"
-        ordering = ['-data_registro', '-id']
+        ordering = ['municipio', 'data_registro']
 
     def __str__(self):
         return f"{self.numero_procedimento} — {self.municipio} — {self.data_registro}"

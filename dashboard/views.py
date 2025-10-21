@@ -28,7 +28,7 @@ def total_ocorrencias_por_mes(request):
 
 
 
-def percentual_crescimento_mensal():
+def reincidencia_de_agressores():
     return render(request, 'indexs.html')
 
 

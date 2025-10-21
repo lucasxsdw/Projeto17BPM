@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.db.models import Q
 from .models import Ocorrencia, Vitima, Agressor
 from .forms import ImportarDadosForm
-
+from datetime import datetime
 
 # =========================
 # PÁGINA INICIAL
@@ -161,7 +161,9 @@ class FormOcorrencia(View):
 # ==========================
 # LISTAGEM DE OCORRÊNCIAS
 # ==========================
-def listar_ocorrencias(request):
+
+
+def listar_ocorrencias(request): 
     """
     Exibe todas as ocorrências cadastradas com filtros opcionais.
     """
@@ -173,8 +175,11 @@ def listar_ocorrencias(request):
     nome_agressor = request.GET.get('agressor')
     tipo_violencia = request.GET.get('violencia')
     municipio = request.GET.get('municipio')
-    data_inicio = request.GET.get('inicio')
-    data_fim = request.GET.get('fim')
+    data_registro = request.GET.get('registro')
+    
+    # ==========================
+    # FILTROS
+    # ==========================
 
     if nome_vitima:
         ocorrencias = ocorrencias.filter(vitimas__nome__icontains=nome_vitima)
@@ -188,14 +193,18 @@ def listar_ocorrencias(request):
     if municipio:
         ocorrencias = ocorrencias.filter(municipio__icontains=municipio)
 
-    if data_inicio:
-        ocorrencias = ocorrencias.filter(data_registro__gte=data_inicio)
+    # Filtro de data 
+    if data_registro:
+        try:
+            data_formatada = datetime.strptime(data_registro, "%Y-%m-%d").date()
+            ocorrencias = ocorrencias.filter(data_registro=data_formatada)
+        except ValueError:
+            pass  # ignora se a data for inválida
 
-    if data_fim:
-        ocorrencias = ocorrencias.filter(data_registro__lte=data_fim)
-
+    # Remove duplicados
     ocorrencias = ocorrencias.distinct()
 
+    # Contexto
     context = {
         'ocorrencias': ocorrencias,
         'filtros': {
@@ -203,8 +212,7 @@ def listar_ocorrencias(request):
             'agressor': nome_agressor,
             'violencia': tipo_violencia,
             'municipio': municipio,
-            'inicio': data_inicio,
-            'fim': data_fim,
+            'registro': data_registro,
         }
     }
 

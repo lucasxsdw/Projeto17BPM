@@ -154,9 +154,12 @@ class FormOcorrencia(View):
             if nome:
                 Vitima.objects.get_or_create(ocorrencia=ocorrencia, nome=nome)
 
+
         for nome in agressores:
             if nome:
-                Agressor.objects.get_or_create(ocorrencia=ocorrencia, nome=nome)
+                agressor_obj, _ = Agressor.objects.get_or_create(nome=nome)
+                ocorrencia.agressores.add(agressor_obj)
+
 
 # ==========================
 # LISTAGEM DE OCORRÊNCIAS

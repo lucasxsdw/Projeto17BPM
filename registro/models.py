@@ -11,6 +11,7 @@ SEX_CHOICES = (
 #  OCORRÊNCIAS PRINCIPAIS
 # ==========================
 class Ocorrencia(models.Model):
+    agressores = models.ManyToManyField('Agressor', related_name='ocorrencias')
     numero_procedimento = models.CharField("Número do procedimento", max_length=120, db_index=True)
     data_registro = models.DateField("Data do registro", null=True, blank=True, db_index=True)
     municipio = models.CharField("Município", max_length=150, null=True, blank=True, db_index=True)
@@ -61,7 +62,6 @@ class Vitima(models.Model):
 
 
 class Agressor(models.Model):
-    ocorrencia = models.ForeignKey(Ocorrencia, on_delete=models.CASCADE, related_name='agressores', null=True)
     nome = models.CharField("Nome", max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -1,9 +1,7 @@
-from django.urls import path
-from . import views
+
+from django.urls import include, path
+from .views import dashboard_view
 
 urlpatterns = [
-
-   path('ocorrencias/mes', views.total_ocorrencias_por_mes, name='total_ocorrencias_por_mes'),
-   #path('dashboard/', views.dashboard, name='dashboard'),
-
+    path('', dashboard_view, name='dashboard'),
 ]

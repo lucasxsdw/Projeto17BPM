@@ -18,6 +18,7 @@ class Ocorrencia(models.Model):
     natureza = models.CharField("Natureza da ocorrência", max_length=255, null=True, blank=True)
     unidade_registro = models.CharField("Unidade de registro", max_length=255, null=True, blank=True)
     unidade_apuracao = models.CharField("Unidade de apuração", max_length=255, null=True, blank=True)
+    medida_protetiva = models.BooleanField("Possui medida protetiva?", default=False)
 
     # Coluna bruta da planilha (texto completo da célula "envolvidos")
     envolvidos_raw = models.TextField("Envolvidos (raw)", null=True, blank=True)

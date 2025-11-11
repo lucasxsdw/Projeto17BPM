@@ -109,10 +109,23 @@ class FormOcorrencia(View):
         Cria ou atualiza uma ocorrência, vinculando vítimas e agressores.
         """
 
-        # Filtra apenas ocorrências de violência doméstica
-        natureza = str(row.get('natureza_da_ocorrencia', '')).lower()
-        if 'violencia domestica' not in natureza:
+         # Texto completo da natureza
+        natureza_texto = str(row.get('natureza_da_ocorrencia', '')).lower()
+
+        
+        if 'violencia domestica' not in natureza_texto:
             return
+        
+        # =========================
+        # VERIFICA SE HÁ MEDIDA PROTETIVA
+        # =========================
+        termos_medida = [
+            'medida protetiva',
+            'descumprimento de medida protetiva',
+            'violação de medida protetiva'
+        ]
+        tem_medida_protetiva = any(termo in natureza_texto for termo in termos_medida)
+
 
         # Converte a data de registro
         data_raw = row.get('data_registro')
@@ -138,6 +151,7 @@ class FormOcorrencia(View):
                 'unidade_apuracao': row.get('unidade_de_apuracao'),
                 'envolvidos_raw': row.get('envolvidos'),
                 'processed': False,
+                'medida_protetiva': tem_medida_protetiva,
             }
         )
 

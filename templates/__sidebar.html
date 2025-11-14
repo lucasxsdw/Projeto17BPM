@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 <ul class="navbar-nav bg-gradient-white sidebar sidebar-dark accordion border-right" id="accordionSidebar">
 
-  <a class="sidebar-brand d-flex align-items-center justify-content-start" href="{% url 'home' %}">
+  <a class="sidebar-brand d-flex align-items-center justify-content-start" href="{% url 'dashboard' %}">
     <div class="sidebar-brand-icon">
         <img src="{% static 'img/logo-17bpm.png' %}" alt="17BPM Logo" class="img-fluid logo-siop">
 </div>
@@ -22,7 +22,8 @@
     
 
      <li class="nav-item">
-    <a class="nav-link text-dark" href="dashboard/">
+    <a class="nav-link text-dark" href="{% url 'dashboard' %}">
+        
             <img src="{% static 'img/painel-de-controle.png' %}" class="nav-icon" alt="Ícone">
             <span class="font-name">Dashboard</span>
     </a>
@@ -48,21 +49,12 @@
 </li>
 
 <li class="nav-item">
-    <a class="nav-link text-dark" href="#">
+    <a class="nav-link text-dark" href="{% url 'verificar_alertas_reincidencia' %}">
         <img src="{% static 'img/notificacao.png' %}" class="nav-icon" alt="">
         <span class="font-name">Alertas</span>
         <span class="badge badge-danger badge-counter">1</span>
     </a>
 </li>
-
-<li class="nav-item">
-    <a class="nav-link text-dark" href="#">
-        <img src="{% static 'img/adicionar-usuario.png' %}" class="nav-icon" alt="">
-        <span class="font-name  " >Usuários</span>
-    </a>
-</li>
-
-    
 
     <hr class="sidebar-divider">
 

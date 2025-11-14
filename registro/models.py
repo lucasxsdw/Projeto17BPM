@@ -1,5 +1,6 @@
 # apps/ocorrencias/models.py
 from django.db import models
+from django.utils import timezone
 
 SEX_CHOICES = (
     ('M', 'Masculino'),
@@ -78,20 +79,16 @@ class Agressor(models.Model):
 #  ALERTAS AUTOMÁTICOS
 # ==========================
 class Alerta(models.Model):
-    """
-    Armazena os alertas gerados automaticamente pelo sistema.
-    """
-    titulo_alerta = models.CharField("Título do alerta", max_length=255)
-    descricao = models.TextField("Descrição")
-    data_hora_alerta = models.DateTimeField("Data/Hora do alerta", auto_now_add=True)
-    localidade_alvo = models.CharField("Localidade alvo", max_length=100, null=True, blank=True)
-    status_email_enviado = models.BooleanField("E-mail enviado", default=False)
+    TIPO_ALERTA = [
+        ('VITIMA_REINCIDENTE', 'Vítima Reincidente'),
+        ('AGRESSOR_REINCIDENTE', 'Agressor Reincidente'),
+        ('CRESCIMENTO_MENSAL', 'Crescimento Mensal'),
+    ]
 
-    class Meta:
-        verbose_name = "Alerta"
-        verbose_name_plural = "Alertas"
-        db_table = 'alertas'
-        ordering = ['-data_hora_alerta']
+    tipo = models.CharField(max_length=30, choices=TIPO_ALERTA)
+    descricao = models.TextField()
+    data_criacao = models.DateTimeField(default=timezone.now)
+    ativo = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.titulo_alerta
+        return f"{self.get_tipo_display()} - {self.data_criacao.strftime('%d/%m/%Y')}"

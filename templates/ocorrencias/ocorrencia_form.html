@@ -2,19 +2,19 @@
 {% load static %}
 {% block content %}
 
+<div class="container mt-5">
 
-    
-<div class="container mt-5 ml-5 ">
-    <div class="mb-4 d-flex align-items-center gap-2">
-    <!-- Link de voltar -->
-    <a href="javascript:history.back()" class="text-decoration-none d-flex align-items-center">
-        <img src="{% static 'img/seta-voltar.png' %}" class="nav-icon-import-back me-2 "  alt="">
-        <span class="fw-bold font-name-import ml-2 ">Importar Dados</span>
-    </a>
-</div>
+    <!-- Header (voltar + título) -->
+    <div class="mb-4 d-flex flex-wrap align-items-center gap-2">
+        <a href="javascript:history.back()" class="text-decoration-none d-flex align-items-center">
+            <img src="{% static 'img/seta-voltar.png' %}" class="nav-icon-import-back me-2" alt="">
+            <span class="fw-bold font-name-import ml-2">Importar Dados</span>
+        </a>
+    </div>
 
-<p class="text-muted font-name-subtext" >Faça upload de arquivos Excel ou CSV com dados de ocorrências</p>
-
+    <p class="text-muted font-name-subtext">
+        Faça upload de arquivos Excel ou CSV com dados de ocorrências
+    </p>
 
     <!-- mensagens Django -->
     {% if messages %}
@@ -32,45 +32,56 @@
     {% endif %}
 
     <form action="{% url 'ocorrencia_form' %}" method="post" enctype="multipart/form-data"
-          class="bg-white shadow-sm p-4 rounded-3 mb-4"
-          style="max-width: 700px;">
+          class="bg-white shadow-sm p-4 rounded-3 mb-4 mx-auto"
+          style="max-width: 900px; width: 100%;">
 
         {% csrf_token %}
 
-        <h5 class=" mb-3 font-name-import-two">
-            <img src="{% static 'img/seta-cima.png' %}" class="nav-icon-import" alt="">
-            <i class="bi bi-upload "></i> Selecionar Arquivo
+        <h5 class="mb-3 font-name-import-two d-flex align-items-center">
+            <img src="{% static 'img/seta-cima.png' %}" class="nav-icon-import me-2" alt="">
+            <i class="bi bi-upload"></i> Selecionar Arquivo
         </h5>
 
-        <!-- Área de drag-and-drop -->
-        <div class="border border-2 border-dashed rounded-3 d-flex flex-column align-items-center justify-content-center p-5 text-center container-import"
+        <!-- Área de drag-and-drop responsiva -->
+        <div class="border border-2 border-dashed rounded-3 d-flex flex-column 
+                    align-items-center justify-content-center p-4 p-md-5 text-center container-import"
              style="border-style: dashed; min-height: 200px; cursor: pointer;"
              onclick="document.getElementById('fileInput').click()">
 
             <i class="bi bi-file-earmark-text text-secondary" style="font-size: 3rem;"></i>
-            <img src="{% static 'img/file.png' %}" class="nav-icon-import" alt="">
+            <img src="{% static 'img/file.png' %}" class="nav-icon-import mt-2" alt="">
             <p class="mt-3 mb-1">Arraste um arquivo ou clique para selecionar</p>
-            <small class="text-muted">Formatos aceitos: Excel (.xlsx, .xls) ou CSV (.csv)</small>
-            <input type="file" name="arquivo" id="fileInput" accept=".xlsx,.xls,.csv" required hidden>
 
-            <button type="submit" class="btn btn-primary mt-4 px-5">Carregar Arquivo</button>
+            <small class="text-muted d-block">
+                Formatos aceitos: Excel (.xlsx, .xls) ou CSV (.csv)
+            </small>
+
+            <input type="file" name="arquivo" id="fileInput"
+                   accept=".xlsx,.xls,.csv" required hidden>
+
+            <button type="submit" class="btn btn-primary mt-4 px-4 px-md-5">
+                Carregar Arquivo
+            </button>
         </div>
-
-        
 
         <!-- Preview do arquivo -->
         <div id="filePreview" class="mt-3 d-none">
-            <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded">
+            <div class="d-flex flex-column flex-md-row align-items-md-center 
+                        justify-content-between bg-light p-3 rounded gap-3">
+
                 <div>
                     <i class="bi bi-file-earmark-excel text-primary"></i>
                     <span id="fileName" class="ms-2"></span>
                     <small id="fileSize" class="text-muted ms-2"></small>
                 </div>
-                <button type="submit" class="btn btn-success">Processar</button>
+
+                <button type="submit" class="btn btn-success">
+                    Processar
+                </button>
             </div>
         </div>
+
     </form>
 </div>
-
 
 {% endblock %}

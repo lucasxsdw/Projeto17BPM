@@ -1,12 +1,17 @@
 from django.shortcuts import render
-from registro.models import Ocorrencia, Agressor, Vitima
+from registro.models import Ocorrencia, Agressor, Vitima, Alerta
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
-
 import json
+import locale
+locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+
+
 
 
 def dashboard_view(request):
+
+  
     total_ocorrencias = Ocorrencia.objects.count()
 
     agressores_reincidentes = Agressor.objects.annotate(
@@ -54,6 +59,7 @@ def dashboard_view(request):
         .annotate(total=Count('id'))
         .order_by('-total')[:5]  # top 5 cidades
     )
+
     labels_cidades = [o['municipio'] or 'Não informado' for o in ocorrencias_por_cidade]
     valores_cidades = [o['total'] for o in ocorrencias_por_cidade]
 
@@ -72,3 +78,38 @@ def dashboard_view(request):
 
 
     return render(request, 'dashboard/index.html', context)
+
+
+
+
+
+
+
+# função auxiliar que gera os alertas
+def gerar_alertas_reincidencia():
+    reincidentes = (
+        Ocorrencia.objects.values('vitimas__nome')
+        .annotate(qtd=Count('id'))
+        .filter(qtd__gt=1)
+        .exclude(vitimas__nome__isnull=True)
+        .exclude(vitimas__nome__exact='')
+    )
+
+    for r in reincidentes:
+        nome = r['vitimas__nome']
+        descricao = f"A vítima {nome} possui {r['qtd']} ocorrências registradas."
+
+        if not Alerta.objects.filter(descricao=descricao, ativo=True).exists():
+            Alerta.objects.create(
+                tipo='VITIMA_REINCIDENTE',
+                descricao=descricao
+            )
+
+
+# view que exibe os alertas
+def verificar_alertas_reincidencia(request):
+    gerar_alertas_reincidencia()  # agora sim, chamando a função auxiliar
+
+    alertas = Alerta.objects.filter(ativo=True).order_by('-data_criacao')[:5]
+    context = {'alertas': alertas}
+    return render(request, 'dashboard/alert.html', context)

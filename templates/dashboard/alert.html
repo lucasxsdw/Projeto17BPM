@@ -1,0 +1,59 @@
+{% extends "_base.html" %}
+{% load static %}
+{% block content %}
+<div class="container py-5">
+
+    <!-- Cabeçalho -->
+   <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class=" mb-0 title-alert">⚠️ Alertas de Risco e Reincidência</h2>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm button-back">← Voltar ao Dashboard</a>
+    </div>
+
+
+
+
+    <!-- Lista de Alertas -->
+    {% if alertas %}
+        <div class="list-group">
+            {% for alerta in alertas %}
+            <div class="list-group-item border-0 mb-3 shadow-sm rounded-4 p-4">
+                <div class="d-flex align-items-start">
+                    <div class="icon-circle me-3 
+                        {% if alerta.tipo == 'VITIMA_REINCIDENTE' %} bg-warning-subtle text-warning
+                        {% elif alerta.tipo == 'AGRESSOR_REINCIDENTE' %} bg-danger-subtle text-danger
+                        {% else %} bg-info-subtle text-info {% endif %}">
+                        {% if alerta.tipo == 'VITIMA_REINCIDENTE' %}
+                            <i class="bi bi-person-exclamation fs-4"></i>
+                        {% elif alerta.tipo == 'AGRESSOR_REINCIDENTE' %}
+                            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                        {% else %}
+                            <i class="bi bi-graph-up-arrow fs-4"></i>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex-grow-1 ">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="fw-bold mb-0">{{ alerta.get_tipo_display }}</h5>
+                            <span class="badge bg-light text-secondary border">{{ alerta.data_criacao|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        <p class="text-muted mb-2 " style="color: rgb(0, 0, 0) !important;">{{ alerta.descricao }}</p>
+                        <div class="d-flex justify-content-between align-items-center small text-secondary">
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-success text-center p-5 rounded-4 shadow-sm">
+            <i class="bi bi-check-circle-fill fs-3 me-2"></i>
+            Nenhum alerta ativo no momento 🎉
+        </div>
+    {% endif %}
+</div>
+
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+
+{% endblock %}
